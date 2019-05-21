@@ -1,0 +1,13 @@
+<!-- dalsa_genie_nano_c2420 launch file -->
+<launch>
+
+  <node pkg="dalsa_genie_nano_c2420" type="dalsa_genie_nano_c2420_driver" name="dalsa_genie_nano_c2420_driver" output="screen">
+    <param name="dalsa_camera_frame"               value="dalsa_link"/>
+    <param name="camera_index"                     value="0"/>
+    <param name="publish_mono"                     value="true"/>
+    <param name="use_synchronous_buffer_cycling"   value="false"/> <!--Pending Tests: make it "true" at your own risk! -->
+    <param name="tune_streaming_threads"           value="false"/> <!--Pending Tests: make it "true" at your own risk! -->
+    <param name="turbo_mode"                       value="false"/> <!--Pending Tests: make it "true" at your own risk! -->
+  </node>
+
+</launch>
