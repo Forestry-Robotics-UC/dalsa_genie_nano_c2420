@@ -12,7 +12,7 @@ Tested on Ubuntu 18.04 and ROS Melodic
 
 2. Register and Download the [DALSA GigE-V Framework](https://www.teledynedalsa.com/en/products/imaging/vision-software/linux-gige-v-framework/) for Linux. 
  
-   There's a copy of the v2.10.0.0157 of the framework from May 2019 [here](https://www.dropbox.com/s/617itmz87yzc00b/gige-v-framework_21000157.zip?dl=0), in case you don't want to register.
+    + There's a copy of the v2.10.0.0157 of the framework from May 2019 [here](https://www.dropbox.com/s/617itmz87yzc00b/gige-v-framework_21000157.zip?dl=0), in case you don't want to register.
 
 3. Extract the x86 .tar to your ```HOME``` folder.
 
@@ -24,23 +24,23 @@ Tested on Ubuntu 18.04 and ROS Melodic
 
 7. Check if you can find the camera on the network:
  
-   ```cd ~/GigE-V-Framework_2.10.0.0157/DALSA/GigeV/tools/GigeDeviceStatus```
+     + ```cd ~/GigE-V-Framework_2.10.0.0157/DALSA/GigeV/tools/GigeDeviceStatus```
  
-   ```./GigeDeviceStatus```
+     + ```./GigeDeviceStatus```
  
-   You should see the camera on the network:
+     + You should now see the camera on the network:
 
-   ![camera_list](doc/dalsa_genie_cam_list.png)
+     ![camera_list](doc/dalsa_genie_cam_list.png)
 
 8. Checking images from the camera using the SDK C++ example:
  
-    ```cd ~/GigE-V-Framework_2.10.0.0157/DALSA/GigeV/examples/genicam_cpp_demo```
+      + ```cd ~/GigE-V-Framework_2.10.0.0157/DALSA/GigeV/examples/genicam_cpp_demo```
  
-    ```make```
+      + ```make```
  
-    ```./genicam_cpp_demo```
+      + ```./genicam_cpp_demo```
  
-    When the program launches, you'll only see a black window. In the terminal, hit "G" and "Enter" and you'll now see the camera feed.
+      + When the program launches, you'll only see a black window. In the terminal, hit "G" and "Enter" and you'll now see the camera feed.
 
 ## Note
 
