@@ -1,7 +1,7 @@
 
 # dalsa_genie_nano_c2420
 
-### v0.1 (David Portugal)
+### v0.2 (David Portugal)
 ROS driver for the [Dalsa Genie Nano C2420 Multispectral Camera](https://www.edmundoptics.eu/p/c2420-23-color-dalsa-genie-nano-poe-camera/4059/) using the GigE SDK and OpenCV. The code is based on the C++ SDK example, and it publishes two sensor_msgs/Image topics on ROS (colored and mono).
 
 Tested on Ubuntu 18.04 and ROS Melodic

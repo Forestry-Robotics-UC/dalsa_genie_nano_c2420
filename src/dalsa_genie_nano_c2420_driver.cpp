@@ -16,30 +16,31 @@
 int main(int argc, char **argv){
 
   ros::init(argc, argv, "dalsa_genie_nano_c2420_driver");
-  ros::NodeHandle n("~");
+  ros::NodeHandle n_p("~");
+  ros::NodeHandle n;
   ros::Publisher img_pub = n.advertise<sensor_msgs::Image>("dalsa_camera", 100);
   ros::Publisher img_pub_mono;
   cv_bridge::CvImagePtr cv_ptr;
 
   std::string dalsa_camera_frame;
-  n.param<std::string>("dalsa_camera_frame", dalsa_camera_frame, "dalsa_link");
+  n_p.param<std::string>("dalsa_camera_frame", dalsa_camera_frame, "dalsa_link");
   int camIndex;
-  n.param("camera_index", camIndex, 0); //only used when more than 1 camera is connected 
+  n_p.param("camera_index", camIndex, 0); //only used when more than 1 camera is connected 
   bool publish_mono;
-  n.param("publish_mono", publish_mono, false);	//also publish monochromatic image
+  n_p.param("publish_mono", publish_mono, false);	//also publish monochromatic image
 
   if (publish_mono){
   	img_pub_mono = n.advertise<sensor_msgs::Image>("dalsa_camera_mono", 100);
   }
 
   bool use_synchronous_buffer_cycling;
-  n.param("use_synchronous_buffer_cycling", use_synchronous_buffer_cycling, false);		//TESTS PENDING...
+  n_p.param("use_synchronous_buffer_cycling", use_synchronous_buffer_cycling, false);
 
   bool tune_streaming_threads;
-  n.param("tune_streaming_threads", tune_streaming_threads, false); 	//TESTS PENDING...
+  n_p.param("tune_streaming_threads", tune_streaming_threads, false);
 
   bool turbo_mode;
-  n.param("turbo_mode", turbo_mode, false); 	//TESTS PENDING...
+  n_p.param("turbo_mode", turbo_mode, false);
 
 
   // Print Params:
@@ -244,7 +245,6 @@ int main(int argc, char **argv){
 	}
 
 	MY_CONTEXT *displayContext = &context;
-    ros::Rate loop_rate(100);
 
     //(De-)Activate Turbo Mode if available:
 	if (turbo_mode && turboDriveAvailable){
@@ -268,6 +268,8 @@ int main(int argc, char **argv){
 		}
 		//ignore all this if turbo_mode=false
 	}    
+
+    ros::Rate loop_rate(100); //just an upper limit (shoul publish at around ~20Hz)
 
 	while(ros::ok() && (!displayContext->exit)){
 
