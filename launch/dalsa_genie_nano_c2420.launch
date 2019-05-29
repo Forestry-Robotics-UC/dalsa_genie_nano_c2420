@@ -1,13 +1,28 @@
 <!-- dalsa_genie_nano_c2420 launch file -->
 <launch>
 
+<arg name="dalsa_camera_topic"      default="dalsa_camera"/>
+<arg name="publish_mono"            default="true"/>
+<arg name="dalsa_camera_mono_topic" default="dalsa_camera_mono"/>
+
+  <!--launch the driver -->
   <node pkg="dalsa_genie_nano_c2420" type="dalsa_genie_nano_c2420_driver" name="dalsa_genie_nano_c2420_driver" output="screen">
     <param name="dalsa_camera_frame"               value="dalsa_link"/>
+    <param name="dalsa_camera_topic"               value="$(arg dalsa_camera_topic)"/>
     <param name="camera_index"                     value="0"/>
-    <param name="publish_mono"                     value="true"/>
+    <param name="publish_mono"                     value="$(arg publish_mono)"/>
+    <param name="dalsa_camera_mono_topic"          value="$(arg dalsa_camera_mono_topic)"/>
     <param name="use_synchronous_buffer_cycling"   value="false"/> <!--make it "true" at your own risk! -->
     <param name="tune_streaming_threads"           value="false"/> <!--make it "true" at your own risk! -->
     <param name="turbo_mode"                       value="false"/> <!--make it "true" at your own risk! -->
   </node>
+
+ <!--publish compressed colored image-->
+ <node pkg="image_transport" type="republish" name="dalsa_image_compress" args="raw in:=$(arg dalsa_camera_topic) compressed out:=$(arg dalsa_camera_topic)"/>
+
+<!--publish compressed mono image (if used)-->
+<group if="$(arg publish_mono)">
+	<node pkg="image_transport" type="republish" name="dalsa_mono_image_compress" args="raw in:=$(arg dalsa_camera_mono_topic) compressed out:=$(arg dalsa_camera_mono_topic)"/>
+</group> 
 
 </launch>

@@ -1,8 +1,8 @@
 
 # dalsa_genie_nano_c2420
 
-### v0.2 (David Portugal)
-ROS driver for the [Dalsa Genie Nano C2420 Multispectral Camera](https://www.edmundoptics.eu/p/c2420-23-color-dalsa-genie-nano-poe-camera/4059/) using the GigE SDK and OpenCV. The code is based on the C++ SDK example, and it publishes two sensor_msgs/Image topics on ROS (colored and mono).
+### v0.3 (David Portugal)
+ROS driver for the [Dalsa Genie Nano C2420 Multispectral Camera](https://www.edmundoptics.eu/p/c2420-23-color-dalsa-genie-nano-poe-camera/4059/) using the GigE SDK and OpenCV. The code is based on the C++ SDK example, and it publishes two sensor_msgs/Image topics on ROS (colored and mono) and their compressed counterparts.
 
 Tested on Ubuntu 18.04 and ROS Melodic
 
@@ -65,6 +65,10 @@ catkin_make
 
 The frame ID entry for the messages.
 
+`dalsa_camera_topic` (`string`, `default: dalsa_camera`)
+
+Topic to publish colored image.
+
 `camera_index` (`int`, `default: 0`)
 
 Only useful for multi-camera setups. You can specify the index of the camera that you want to run.
@@ -72,6 +76,10 @@ Only useful for multi-camera setups. You can specify the index of the camera tha
 `publish_mono` (`bool`, `default: false`)
 
 Activate publishing of the monochromatic image topic as well.
+
+`dalsa_camera_mono_topic` (`string`, `default: dalsa_camera_mono`)
+
+Topic to publish mono image (if `publish_mono` is true).
 
 `use_synchronous_buffer_cycling` (`bool`, `default: false`)
 

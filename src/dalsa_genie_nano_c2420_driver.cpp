@@ -18,19 +18,25 @@ int main(int argc, char **argv){
   ros::init(argc, argv, "dalsa_genie_nano_c2420_driver");
   ros::NodeHandle n_p("~");
   ros::NodeHandle n;
-  ros::Publisher img_pub = n.advertise<sensor_msgs::Image>("dalsa_camera", 100);
-  ros::Publisher img_pub_mono;
-  cv_bridge::CvImagePtr cv_ptr;
 
   std::string dalsa_camera_frame;
   n_p.param<std::string>("dalsa_camera_frame", dalsa_camera_frame, "dalsa_link");
+  std::string dalsa_camera_topic;
+  n_p.param<std::string>("dalsa_camera_topic", dalsa_camera_topic, "dalsa_camera");
+
+  ros::Publisher img_pub = n.advertise<sensor_msgs::Image>(dalsa_camera_topic, 100);
+  ros::Publisher img_pub_mono;
+  cv_bridge::CvImagePtr cv_ptr;
+
   int camIndex;
   n_p.param("camera_index", camIndex, 0); //only used when more than 1 camera is connected 
   bool publish_mono;
   n_p.param("publish_mono", publish_mono, false);	//also publish monochromatic image
 
   if (publish_mono){
-  	img_pub_mono = n.advertise<sensor_msgs::Image>("dalsa_camera_mono", 100);
+  	std::string dalsa_camera_mono_topic;
+    n_p.param<std::string>("dalsa_camera_mono_topic", dalsa_camera_mono_topic, "dalsa_camera_mono");
+  	img_pub_mono = n.advertise<sensor_msgs::Image>(dalsa_camera_mono_topic, 100);
   }
 
   bool use_synchronous_buffer_cycling;
@@ -70,17 +76,17 @@ int main(int argc, char **argv){
 
   // DISCOVER Camera(s): Get all the IP addresses of attached network cards.
   status = GevGetCameraList( pCamera, MAX_CAMERAS, &numCamera);
-  ROS_INFO ("%d camera(s) found on the network", numCamera);
+  ROS_INFO ("%d Dalsa camera(s) found on the network", numCamera);
 
   //No cameras found:
   if (numCamera == 0){ 
-  	ROS_ERROR("No cameras found");
+  	ROS_ERROR("No Dalsa cameras found");
   	return -1;
   }
 
   // Make sure the camera Index (0 by default or passed as a ROS param) is within range
   if (camIndex >= numCamera){
-  	ROS_WARN("Camera index %d out of range. Only %d camera(s) are present. Defaulting to the first camera.", camIndex, numCamera);
+  	ROS_WARN("Dalsa camera index %d out of range. Only %d camera(s) are present. Defaulting to the first camera.", camIndex, numCamera);
 	camIndex = 0;
    }
 
@@ -108,7 +114,7 @@ int main(int argc, char **argv){
 	//====================================================================
 	// Open the camera.
 	if (GevOpenCamera( &pCamera[camIndex], GevExclusiveMode, &handle)){ //this function returns status=0 in success
-		ROS_ERROR("Error opening the Camera.");
+		ROS_ERROR("Error opening the Dalsa camera.");
 		return -1;
 	}
 
@@ -162,7 +168,7 @@ int main(int argc, char **argv){
 	}
 
 	if(status!=0){
-		ROS_ERROR("Error accessing the Camera.");
+		ROS_ERROR("Error accessing the Dalsa camera.");
 		return -1;
 	}
 
@@ -184,19 +190,19 @@ int main(int argc, char **argv){
 
 	if (!use_synchronous_buffer_cycling){
 		if ( GevInitializeTransfer( handle, Asynchronous, size, numBuffers, bufAddress)){ //this function returns status=0 in success
-			ROS_ERROR("Error Initializing the Asynchronous Camera Stream Transfer.");
+			ROS_ERROR("Error Initializing the Asynchronous Dalsa Camera Stream Transfer.");
 			return -1;
 		}
 	}else{
 		if ( GevInitializeTransfer( handle, SynchronousNextEmpty, size, numBuffers, bufAddress)){ //this function returns status=0 in success
-			ROS_ERROR("Error Initializing the Synchronous Camera Stream Transfer.");
+			ROS_ERROR("Error Initializing the Synchronous Dalsa Camera Stream Transfer.");
 			return -1;
 		}		
 	}
 
 
 	if ( GetX11DisplayablePixelFormat( ENABLE_BAYER_CONVERSION, format, &convertedGevFormat, &pixFormat) ){ //this function returns status=0 in success
-		ROS_ERROR("Error Getting the X11 Displayable Pixel Format.");
+		ROS_ERROR("Error Getting the X11 Displayable Pixel Format from the Dalsa Camera.");
 		return -1;
 	}
 
@@ -240,7 +246,7 @@ int main(int argc, char **argv){
 	}
 
 	if ( GevStartTransfer( handle, -1)){ //this function returns status=0 in success
-		ROS_ERROR("Error Streaming the Camera's feed.");
+		ROS_ERROR("Error Streaming the Dalsa Camera's feed.");
 		return -1;
 	}
 
@@ -264,7 +270,7 @@ int main(int argc, char **argv){
 
 	}else{
 		if (turbo_mode && turboDriveAvailable==false){
-			ROS_WARN("TurboDrive is NOT Available for this device/pixel format combination");
+			ROS_WARN("TurboDrive is NOT Available for this Dalsa device/pixel format combination");
 		}
 		//ignore all this if turbo_mode=false
 	}    
@@ -334,7 +340,7 @@ int main(int argc, char **argv){
 			}else{
 				// Image had an error (incomplete (timeout/overflow/lost)).
 				// Do any handling of this condition necessary.
-				ROS_ERROR("Error: Incomplete/Timeout/Overflow/Lost) image.");
+				ROS_ERROR("Error: Incomplete/Timeout/Overflow/Lost) Dalsa camera image.");
 			}
 
 	  if (use_synchronous_buffer_cycling){
