@@ -2,7 +2,7 @@
 <launch>
 
 <arg name="dalsa_camera_topic"      default="dalsa_camera"/>
-<arg name="publish_mono"            default="true"/>
+<arg name="publish_mono"            default="false"/>
 <arg name="dalsa_camera_mono_topic" default="dalsa_camera_mono"/>
 
   <!--launch the driver -->
@@ -17,12 +17,14 @@
     <param name="turbo_mode"                       value="false"/> <!--make it "true" at your own risk! -->
   </node>
 
- <!--publish compressed colored image-->
+ <!--publish compressed colored image (full and 720p-->
  <node pkg="image_transport" type="republish" name="dalsa_image_compress" args="raw in:=$(arg dalsa_camera_topic) compressed out:=$(arg dalsa_camera_topic)"/>
+ <node pkg="image_transport" type="republish" name="dalsa_image720p_compress" args="raw in:=$(arg dalsa_camera_topic)_720p compressed out:=$(arg dalsa_camera_topic)_720p"/>
 
 <!--publish compressed mono image (if used)-->
 <group if="$(arg publish_mono)">
 	<node pkg="image_transport" type="republish" name="dalsa_mono_image_compress" args="raw in:=$(arg dalsa_camera_mono_topic) compressed out:=$(arg dalsa_camera_mono_topic)"/>
+  <node pkg="image_transport" type="republish" name="dalsa_mono_image720p_compress" args="raw in:=$(arg dalsa_camera_mono_topic)_720p compressed out:=$(arg dalsa_camera_mono_topic)_720p"/>
 </group> 
 
 </launch>

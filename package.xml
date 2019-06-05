@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>dalsa_genie_nano_c2420</name>
-  <version>0.3.0</version>
+  <version>0.4.0</version>
   <description>The dalsa_genie_nano_c2420 package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->

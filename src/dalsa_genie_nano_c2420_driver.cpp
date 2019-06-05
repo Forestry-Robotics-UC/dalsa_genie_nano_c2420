@@ -23,9 +23,11 @@ int main(int argc, char **argv){
   n_p.param<std::string>("dalsa_camera_frame", dalsa_camera_frame, "dalsa_link");
   std::string dalsa_camera_topic;
   n_p.param<std::string>("dalsa_camera_topic", dalsa_camera_topic, "dalsa_camera");
+  std::string dalsa_camera_topic_720p;
 
   ros::Publisher img_pub = n.advertise<sensor_msgs::Image>(dalsa_camera_topic, 100);
-  ros::Publisher img_pub_mono;
+  ros::Publisher img_pub_color_720p = n.advertise<sensor_msgs::Image>(dalsa_camera_topic+"_720p", 100);
+  ros::Publisher img_pub_mono, img_pub_mono_720p;
   cv_bridge::CvImagePtr cv_ptr;
 
   int camIndex;
@@ -37,6 +39,7 @@ int main(int argc, char **argv){
   	std::string dalsa_camera_mono_topic;
     n_p.param<std::string>("dalsa_camera_mono_topic", dalsa_camera_mono_topic, "dalsa_camera_mono");
   	img_pub_mono = n.advertise<sensor_msgs::Image>(dalsa_camera_mono_topic, 100);
+  	img_pub_mono_720p = n.advertise<sensor_msgs::Image>(dalsa_camera_mono_topic+"_720p", 100);
   }
 
   bool use_synchronous_buffer_cycling;
@@ -307,26 +310,45 @@ int main(int argc, char **argv){
 							//Display_Image( displayContext->View, displayContext->depth, img->w, img->h, displayContext->convertBuffer );
 
 							//Forget X11: use OpenCV instead (RGBA):
-							cv::Mat cv_image_color(img->h, img->w, CV_8UC4, displayContext->convertBuffer);
+							cv::Mat cv_image_color(img->h, img->w, CV_8UC4, displayContext->convertBuffer); //TYPE_8UC4 (the "A" channel is empty with zeros)
+
+							//Convert in OpenCV CV_8UC4 to CV_8UC3
+							cv::Mat cv_image_color_converted_for_ROS;
+							cv::cvtColor(cv_image_color, cv_image_color_converted_for_ROS, CV_RGBA2RGB, 3 ); //TYPE_8UC3
 
 							//In case we want to display it in OpenCV:
 							//cv::imshow("opencv window", cv_image_color);
 							//cv::waitKey(3);
 
-							//Now Publish two ROS msgs: COLOR IMG and MONO IMG:
+							cv::Mat cv_image_color_720p;
+							cv::resize(cv_image_color_converted_for_ROS, cv_image_color_720p, cv::Size(cv_image_color_converted_for_ROS.cols * 0.3502,cv_image_color_converted_for_ROS.rows * 0.3502), 0, 0, CV_INTER_LINEAR);
+
+							//Now Publish four ROS msgs: COLOR IMG, COLOR IMG 720p, MONO IMG, MONO IMG 720p:
 							cv_bridge::CvImage out_msg;
 							out_msg.header.stamp = ros::Time::now();
 							out_msg.header.frame_id = dalsa_camera_frame;
-							out_msg.encoding = sensor_msgs::image_encodings::TYPE_8UC4;
-							out_msg.image    = cv_image_color;
-							img_pub.publish(out_msg.toImageMsg()); //publish color
+							//out_msg.encoding = sensor_msgs::image_encodings::TYPE_8UC4 (original)
+							out_msg.encoding = sensor_msgs::image_encodings::BGR8; //TYPE_8UC3 (BGR8 is more efficient)
+							//out_msg.image    = cv_image_color;
+							out_msg.image    = cv_image_color_converted_for_ROS;
+							img_pub.publish(out_msg.toImageMsg()); //publish full color image
+
+							//COLOR IMG 720p:
+							out_msg.image    = cv_image_color_720p;
+							img_pub_color_720p.publish(out_msg.toImageMsg()); //publish color 720p
 
 							//OpenCV (MONO):
 							if (publish_mono){
 								cv::Mat cv_image_mono(img->h, img->w, CV_8U, img->address);
-								out_msg.encoding = sensor_msgs::image_encodings::TYPE_8UC1;
+								out_msg.encoding = sensor_msgs::image_encodings::TYPE_8UC3;
 								out_msg.image    = cv_image_mono;
-								img_pub_mono.publish(out_msg.toImageMsg()); //publish color	
+								img_pub_mono.publish(out_msg.toImageMsg()); //publish mono	
+
+								//MONO 720p:
+								cv::Mat cv_image_mono_720p;
+								cv::resize(cv_image_mono, cv_image_mono_720p, cv::Size(cv_image_mono.cols * 0.3502,cv_image_mono.rows * 0.3502), 0, 0, CV_INTER_LINEAR);
+								out_msg.image    = cv_image_mono_720p;
+								img_pub_mono_720p.publish(out_msg.toImageMsg()); //publish mono 720p	
 							}
 
 						}else{

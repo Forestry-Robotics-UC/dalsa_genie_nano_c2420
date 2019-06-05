@@ -1,7 +1,7 @@
 
 # dalsa_genie_nano_c2420
 
-### v0.3 (David Portugal)
+### v0.4 (David Portugal)
 ROS driver for the [Dalsa Genie Nano C2420 Multispectral Camera](https://www.edmundoptics.eu/p/c2420-23-color-dalsa-genie-nano-poe-camera/4059/) using the GigE SDK and OpenCV. The code is based on the C++ SDK example, and it publishes two sensor_msgs/Image topics on ROS (colored and mono) and their compressed counterparts.
 
 Tested on Ubuntu 18.04 and ROS Melodic
@@ -99,11 +99,19 @@ Enable/disable Turbo Mode (if available) to push past the gigabit Ethernet speed
 
 `dalsa_camera` (`sensor_msgs/Image`)
 
-RGBA (8UC4) Image.
+RGB Image. Raw and compressed.
+
+`dalsa_camera_720p` (`sensor_msgs/Image`)
+
+Downscale RGB image to 720p. Raw and compressed.
 
 `dalsa_camera_mono` (`sensor_msgs/Image`)
 
-Mono (8UC1) Image. Only published when `publish_mono` is `true`.
+Mono (8UC1) Image. Raw and compressed. Only published when `publish_mono` is `true`.
+
+`dalsa_camera_mono_720p` (`sensor_msgs/Image`)
+
+Mono (8UC1) Image, downscaled to 720p. Raw and compressed. Only published when `publish_mono` is `true`.
 
 
 
