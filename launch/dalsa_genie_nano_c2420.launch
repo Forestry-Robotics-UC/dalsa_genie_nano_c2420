@@ -6,7 +6,7 @@
 <arg name="dalsa_camera_mono_topic" default="dalsa_camera_mono"/>
 
   <!--launch the driver -->
-  <node pkg="dalsa_genie_nano_c2420" type="dalsa_genie_nano_c2420_driver" name="dalsa_genie_nano_c2420_driver" output="screen">
+  <node pkg="dalsa_genie_nano_c2420" type="dalsa_genie_nano_c2420_driver" name="dalsa_genie_nano_c2420_driver" output="screen" respawn="true">
     <param name="dalsa_camera_frame"               value="dalsa_link"/>
     <param name="dalsa_camera_topic"               value="$(arg dalsa_camera_topic)"/>
     <param name="camera_index"                     value="0"/>

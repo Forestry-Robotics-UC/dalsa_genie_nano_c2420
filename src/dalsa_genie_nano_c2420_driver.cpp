@@ -278,14 +278,15 @@ int main(int argc, char **argv){
 		//ignore all this if turbo_mode=false
 	}    
 
-    ros::Rate loop_rate(100); //just an upper limit (shoul publish at around ~20Hz)
-
-	while(ros::ok() && (!displayContext->exit)){
+    ros::Rate loop_rate(30); //just an upper limit (should publish at around ~20Hz)
+    ROS_INFO ("Start streaming images");
+	
+    while(ros::ok() && (!displayContext->exit)){
 
 		GEV_BUFFER_OBJECT *img = NULL;
 
 		// Wait for images to be received
-		status = GevWaitForNextImage(displayContext->camHandle, &img, 1000);
+		status = GevWaitForNextImage(displayContext->camHandle, &img, 200);//it was 1 sec before
 
 			if ((img != NULL) && (status == GEVLIB_OK))
 			{
@@ -363,6 +364,7 @@ int main(int argc, char **argv){
 				// Image had an error (incomplete (timeout/overflow/lost)).
 				// Do any handling of this condition necessary.
 				ROS_ERROR("Error: Incomplete/Timeout/Overflow/Lost) Dalsa camera image.");
+                break; //restart
 			}
 
 	  if (use_synchronous_buffer_cycling){
@@ -401,7 +403,7 @@ int main(int argc, char **argv){
   GevApiUninitialize();
 
   // Close socket API
-  _CloseSocketAPI ();	// must close API even on error  
+  _CloseSocketAPI ();	// must close API even on error
 
   return 0;
 }
