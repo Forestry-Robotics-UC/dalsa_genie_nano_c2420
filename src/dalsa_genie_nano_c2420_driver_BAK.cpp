@@ -1,136 +1,17 @@
-//This code is heavily based on the GigE Vision Library GenICam C++ Example Program by DALSA, 2015
+//This code is based on the GigE Vision Library GenICam C++ Example Program by DALSA, 2015
 
-#include <ros/ros.h>
-#include <sensor_msgs/Image.h>
-#include <opencv2/highgui.hpp>
-#include <cv_bridge/cv_bridge.h>
-#include <gevapi.h>
-#include <GenApi/GenApi.h>
+#include "ros/ros.h"
+#include "sensor_msgs/Image.h"
+#include "gevapi.h"	
+#include "GenApi/GenApi.h"
 #include "dalsa_genie_nano_c2420/SapX11Util.h"
+#include "dalsa_genie_nano_c2420/X_Display_utils.h"
 #include "dalsa_genie_nano_c2420/dalsa_genie_nano_c2420_utils.h"
 
-//global vars for access inside the thread:
-void *m_latestBuffer = NULL;
-std::string dalsa_camera_frame;
-ros::Publisher img_pub, img_pub_color_720p, img_pub_mono, img_pub_mono_720p;
-bool publish_mono;
-bool use_synchronous_buffer_cycling;
-bool restart;
-
-void * ImageStreamThread(void *context){
-	
-	MY_CONTEXT *displayContext = (MY_CONTEXT *)context;
-
-	if (displayContext != NULL) {
-   		//unsigned long prev_time = 0;
-   		//unsigned long cur_time = 0;
-		//unsigned long deltatime = 0;
-		//prev_time = us_timer_init();
-
-		// While we are still running.
-		while(!displayContext->exit)
-		{
-			GEV_BUFFER_OBJECT *img = NULL;
-			GEV_STATUS status = 0;
-	
-			// Wait for images to be received
-			status = GevWaitForNextImage(displayContext->camHandle, &img, 1000); //it was 1 sec
-
-			if ((img != NULL) && (status == GEVLIB_OK))
-			{
-				if (img->status == 0)
-				{
-					m_latestBuffer = img->address;
-					// Can the acquired buffer be displayed?
-					if ( IsGevPixelTypeX11Displayable(img->format) || displayContext->convertFormat )
-					{
-						// Convert the image format if required.
-						if (displayContext->convertFormat)
-						{
-							int gev_depth = GevGetPixelDepthInBits(img->format);
-
-							// [IN] FORMAT (img): "CV_8U" (BAYRG8)
-							// Convert the image to a displayable format.
-							//(Note : Not all formats can be displayed properly at this time (planar, YUV*, 10/12 bit packed).
-							ConvertGevImageToX11Format( img->w, img->h, gev_depth, img->format, img->address, \
-													displayContext->depth, displayContext->format, displayContext->convertBuffer);
-							// [OUT] FORMAT (displayContext): "CV_8UC4" (CORX11_DATA_FORMAT_RGB8888)
-					
-							// Display the image in the (supported) converted format. 
-							//Display_Image( displayContext->View, displayContext->depth, img->w, img->h, displayContext->convertBuffer );				
-
-							//Forget X11: use OpenCV instead (RGBA):
-							cv::Mat cv_image_color(img->h, img->w, CV_8UC4, displayContext->convertBuffer); //TYPE_8UC4 (the "A" channel is empty with zeros)
-
-							//Convert in OpenCV CV_8UC4 to CV_8UC3
-							cv::Mat cv_image_color_converted_for_ROS;
-							cv::cvtColor(cv_image_color, cv_image_color_converted_for_ROS, CV_RGBA2RGB, 3 ); //TYPE_8UC3
-
-							//In case we want to display it in OpenCV:
-							//cv::imshow("opencv window", cv_image_color);
-							//cv::waitKey(3);
-
-							cv::Mat cv_image_color_720p;
-							cv::resize(cv_image_color_converted_for_ROS, cv_image_color_720p, cv::Size(cv_image_color_converted_for_ROS.cols * 0.3502,cv_image_color_converted_for_ROS.rows * 0.3502), 0, 0, CV_INTER_LINEAR);
-
-							//Now Publish four ROS msgs: COLOR IMG, COLOR IMG 720p, MONO IMG, MONO IMG 720p:
-							cv_bridge::CvImage out_msg;
-							out_msg.header.stamp = ros::Time::now();
-							out_msg.header.frame_id = dalsa_camera_frame;
-							//out_msg.encoding = sensor_msgs::image_encodings::TYPE_8UC4 (original)
-							out_msg.encoding = sensor_msgs::image_encodings::BGR8; //TYPE_8UC3 (BGR8 is more efficient)
-							//out_msg.image    = cv_image_color;
-							out_msg.image    = cv_image_color_converted_for_ROS;
-							img_pub.publish(out_msg.toImageMsg()); //publish full color image
-
-							//COLOR IMG 720p:
-							out_msg.image    = cv_image_color_720p;
-							img_pub_color_720p.publish(out_msg.toImageMsg()); //publish color 720p
-
-							//OpenCV (MONO):
-							if (publish_mono){
-								cv::Mat cv_image_mono(img->h, img->w, CV_8U, img->address);
-								out_msg.encoding = sensor_msgs::image_encodings::TYPE_8UC3;
-								out_msg.image    = cv_image_mono;
-								img_pub_mono.publish(out_msg.toImageMsg()); //publish mono	
-
-								//MONO 720p:
-								cv::Mat cv_image_mono_720p;
-								cv::resize(cv_image_mono, cv_image_mono_720p, cv::Size(cv_image_mono.cols * 0.3502,cv_image_mono.rows * 0.3502), 0, 0, CV_INTER_LINEAR);
-								out_msg.image    = cv_image_mono_720p;
-								img_pub_mono_720p.publish(out_msg.toImageMsg()); //publish mono 720p	
-							}
-
-						}else{
-							//Display the image in the (supported) received format. 
-							//Display_Image( displayContext->View, img->d,  img->w, img->h, img->address );
-							//I have no way of testing this and open it in OpenCV and convert to ROS.
-						}
-					}
-				
-				}else{
-					// Image had an error (incomplete (timeout/overflow/lost)).
-					// Do any handling of this condition necessary.
-                    
-					//ROS_WARN("Warning: Incomplete/Timeout/Overflow/Lost) Dalsa camera image.");
-				}
-
-			}else{
-				ROS_ERROR("Error: Incomplete/Timeout/Overflow/Lost) Dalsa camera image.");
-				restart=true;
-			}
-
-			if (use_synchronous_buffer_cycling){
-				if (img != NULL){
-					// Release the buffer back to the image transfer process.
-					GevReleaseImage( displayContext->camHandle, img);
-				}
-			}
-		}
-	}
-	pthread_exit(0);	
-}
-
+#undef index //removing this macro allows OpenCV to compile
+//#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
+#include <cv_bridge/cv_bridge.h>
 
 int main(int argc, char **argv){
 
@@ -138,18 +19,20 @@ int main(int argc, char **argv){
   ros::NodeHandle n_p("~");
   ros::NodeHandle n;
 
+  std::string dalsa_camera_frame;
   n_p.param<std::string>("dalsa_camera_frame", dalsa_camera_frame, "dalsa_link");
   std::string dalsa_camera_topic;
   n_p.param<std::string>("dalsa_camera_topic", dalsa_camera_topic, "dalsa_camera");
   std::string dalsa_camera_topic_720p;
 
-  img_pub = n.advertise<sensor_msgs::Image>(dalsa_camera_topic, 100);
-  img_pub_color_720p = n.advertise<sensor_msgs::Image>(dalsa_camera_topic+"_720p", 100);
-  //ros::Publisher img_pub_mono, img_pub_mono_720p;
-  //cv_bridge::CvImagePtr cv_ptr;
+  ros::Publisher img_pub = n.advertise<sensor_msgs::Image>(dalsa_camera_topic, 100);
+  ros::Publisher img_pub_color_720p = n.advertise<sensor_msgs::Image>(dalsa_camera_topic+"_720p", 100);
+  ros::Publisher img_pub_mono, img_pub_mono_720p;
+  cv_bridge::CvImagePtr cv_ptr;
 
   int camIndex;
   n_p.param("camera_index", camIndex, 0); //only used when more than 1 camera is connected 
+  bool publish_mono;
   n_p.param("publish_mono", publish_mono, false);	//also publish monochromatic image
 
   if (publish_mono){
@@ -159,6 +42,7 @@ int main(int argc, char **argv){
   	img_pub_mono_720p = n.advertise<sensor_msgs::Image>(dalsa_camera_mono_topic+"_720p", 100);
   }
 
+  bool use_synchronous_buffer_cycling;
   n_p.param("use_synchronous_buffer_cycling", use_synchronous_buffer_cycling, false);
 
   bool tune_streaming_threads;
@@ -177,14 +61,13 @@ int main(int argc, char **argv){
   // ROS_INFO("turbo_mode: %s", turbo_mode ? "true" : "false");
 
   //Setting up camera capture:
+  void *m_latestBuffer = NULL;
   GEV_DEVICE_INTERFACE  pCamera[MAX_CAMERAS] = {0};
   GEV_STATUS status;
   int numCamera = 0;
   MY_CONTEXT context = {0};
   //X_VIEW_HANDLE  View = NULL;
   int turboDriveAvailable = 0;
-  pthread_t  tid;
-  restart = false;
 
   //set default options:
   GEVLIB_CONFIG_OPTIONS options = {0};
@@ -289,7 +172,7 @@ int main(int argc, char **argv){
 
 	if(status!=0){
 		ROS_ERROR("Error accessing the Dalsa camera.");
-		return -1; 
+		return -1;
 	}
 
     //ROS_INFO("Camera ROI set for \n\tHeight = %d\n\tWidth = %d\n\tPixelFormat (val) = 0x%08x\n", height,width,format);
@@ -359,7 +242,18 @@ int main(int argc, char **argv){
 
 	context.camHandle = handle;
 	context.exit = FALSE;
-	pthread_create(&tid, NULL, ImageStreamThread, &context); 
+
+	//START STREAMING (CONTINUOUS GRAB)!
+	for (i = 0; i < numBuffers; i++){
+			memset(bufAddress[i], 0, size);
+	}
+
+	if ( GevStartTransfer( handle, -1)){ //this function returns status=0 in success
+		ROS_ERROR("Error Streaming the Dalsa Camera's feed.");
+		return -1;
+	}
+
+	MY_CONTEXT *displayContext = &context;
 
     //(De-)Activate Turbo Mode if available:
 	if (turbo_mode && turboDriveAvailable){
@@ -382,30 +276,8 @@ int main(int argc, char **argv){
 			ROS_WARN("TurboDrive is NOT Available for this Dalsa device/pixel format combination");
 		}
 		//ignore all this if turbo_mode=false
-	}  
+	}    
 
-	//START STREAMING (CONTINUOUS GRAB)!
-	for (i = 0; i < numBuffers; i++){
-			memset(bufAddress[i], 0, size);
-	}
-
-	if ( GevStartTransfer( handle, -1)){ //this function returns status=0 in success
-		ROS_ERROR("Error Streaming the Dalsa Camera's feed.");
-		return -1;
-	}
-	
-	ros::Rate loop_rate(30); //just an upper limit (should publish at around ~20Hz)
-    ROS_INFO ("Start streaming images");
-
-	//MY_CONTEXT *displayContext = &context;  
-	//ros::spin(); 
-    
-    while(ros::ok() && restart == false){ //let the image stream thread run.
-        ros::spinOnce();
-	    loop_rate.sleep();        
-    }
-
-/*
     ros::Rate loop_rate(30); //just an upper limit (should publish at around ~20Hz)
     ROS_INFO ("Start streaming images");
 	
@@ -505,13 +377,12 @@ int main(int argc, char **argv){
 	  ros::spinOnce();
 	  loop_rate.sleep();
 	}	
-*/
+
   //abort:
   GevAbortTransfer(handle);
   //quit:
   GevStopTransfer(handle);
   context.exit = TRUE;
-  pthread_join( tid, NULL); 
 
   status = GevFreeTransfer(handle);
   //DestroyDisplayWindow(View);
