@@ -13,7 +13,7 @@ class NDVI_converter():
 	def __init__(self):
 		rospy.on_shutdown(self.shutdown)
 		# Get ROS Params
-		camera_topic = self.camera_chosen(rospy.get_param("Camera_chosen"))
+		camera_topic = self.camera_chosen(rospy.get_param("Camera_chosen", 0))
 		print ("Camera Topic: " + str(camera_topic))
 
 		# Publishers
@@ -31,30 +31,28 @@ class NDVI_converter():
 	def set_extra_publishers(self):
 
 		if rospy.get_param("Indexes/CVI") == True:
-			self.cvi_pub = rospy.Publisher("cvi", Image, queue_size=100)
+			self.cvi_pub = rospy.Publisher("dalsa_camera/cvi", Image, queue_size=100)
 		if rospy.get_param("Indexes/Red") == True:
-			self.red_pub = rospy.Publisher("red", Image, queue_size=100)
+			self.red_pub = rospy.Publisher("dalsa_camera/red_channel", Image, queue_size=100)
 		if rospy.get_param("Indexes/Green") == True:
-			self.green_pub = rospy.Publisher("green", Image, queue_size=100)
+			self.green_pub = rospy.Publisher("dalsa_camera/green_channel", Image, queue_size=100)
 		if rospy.get_param("Indexes/NIR") == True:
-			self.nir_pub = rospy.Publisher("nir", Image, queue_size=100)
+			self.nir_pub = rospy.Publisher("dalsa_camera/nir_channel", Image, queue_size=100)
 		if rospy.get_param("Indexes/Normalized_Green") == True:
-			self.ngreen_pub = rospy.Publisher("normalized_green", Image, queue_size=100)
+			self.ngreen_pub = rospy.Publisher("dalsa_camera/normalized_green", Image, queue_size=100)
 		if rospy.get_param("Indexes/Normalized_NIR") == True:
-			self.nnir_pub = rospy.Publisher("normalized_nir", Image, queue_size=100)
+			self.nnir_pub = rospy.Publisher("dalsa_camera/normalized_nir", Image, queue_size=100)
 		if rospy.get_param("Indexes/Normalized_Red") == True:
-			self.nred_pub = rospy.Publisher("normalized_red", Image, queue_size=100)
+			self.nred_pub = rospy.Publisher("dalsa_camera/normalized_red", Image, queue_size=100)
 		if rospy.get_param("Indexes/TVI") == True:
-			self.tvi_pub = rospy.Publisher("tvi", Image, queue_size=100)
+			self.tvi_pub = rospy.Publisher("dalsa_camera/tvi", Image, queue_size=100)
 
 	def camera_chosen(self, i):
 		# Switcher for yaml file: choose which camera to subscribe.
 		print ("Index Camera: "+ str(rospy.get_param("Camera_chosen")))
 		self.switcher={
-				0:rospy.get_param("Subscribers/Camera_720p/topic"),
-				1:rospy.get_param("Subscribers/Camera_4k/topic"),
-				2:rospy.get_param("Subscribers/Compressed_720p/topic"),
-				3:rospy.get_param("Subscribers/Compressed_4k/topic")
+				0:rospy.get_param("Subscribers/Camera_720p/topic", "image_raw"),
+				1:rospy.get_param("Subscribers/Camera_4k/topic", "image_raw"),
 		}
 
 		return self.switcher.get(i, "Error: Invalid Option; No Camera chosen")
@@ -71,9 +69,14 @@ class NDVI_converter():
 		# Simple definition to publish image in the publisher chosen
 		# Convert OpenCV image to ROS image
 		try:
-			publisher.publish(self.bridge.cv2_to_imgmsg(image, encoding="passthrough"))
+			image_pub = self.bridge.cv2_to_imgmsg(image, encoding="passthrough")
+			image_pub.header = self.camera_header
+			publisher.publish(image_pub)
+
 		except CvBridgeError as e:
 				print (e)
+
+
 
 	def extra_indexes (self, g_float, nir_float, r_float):
 		# Publish all extra indexes if set as True on the camera.yaml file
@@ -121,7 +124,7 @@ class NDVI_converter():
 
 
 	def camera_callback(self, data):
-
+		self.camera_header = data.header
 		cv_image = self.convert_image_cv(data)
 
 		# Split Channels 
