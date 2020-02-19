@@ -3,7 +3,7 @@ from __future__ import print_function
 import cv2 as cv
 import sys
 import roslib
-roslib.load_manifest('core_project')
+roslib.load_manifest('dalsa_genie_nano_c2420')
 import rospy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
