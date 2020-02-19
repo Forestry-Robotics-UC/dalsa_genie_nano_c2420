@@ -1,3 +1,5 @@
+<?xml version="1.0"?>
+
 <!-- dalsa_genie_nano_c2420 launch file -->
 <launch>
 
@@ -27,4 +29,5 @@
   <node pkg="image_transport" type="republish" name="dalsa_mono_image720p_compress" args="raw in:=$(arg dalsa_camera_mono_topic)_720p compressed out:=$(arg dalsa_camera_mono_topic)_720p"/>
 </group> 
 
+<include file = "$(find dalsa_genie_nano_c2420)/launch/ndvi.launch" />
 </launch>

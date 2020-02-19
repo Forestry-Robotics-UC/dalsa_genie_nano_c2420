@@ -1,0 +1,20 @@
+Camera_chosen: 1 # 0: Camera 4k 1: Camera 720p 
+Subscribers:
+  Camera_720p:
+    topic: /dalsa_camera_720p #/image_raw
+  Camera_4k:
+    topic: /dalsa_camera #/image_raw
+
+
+
+# Choose which extra indexes and channels to publish images
+Indexes:
+  CVI: False
+  Red: True
+  Green: True
+  NIR: True
+  Normalized_Green: False
+  Normalized_NIR: False
+  Normalized_Red: False
+  TVI: False
+
