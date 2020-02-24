@@ -4,6 +4,8 @@
 ### v0.6 (David Portugal + Maria Eduarda Andrada)
 ROS driver for the [Dalsa Genie Nano C2420 Multispectral Camera](https://www.edmundoptics.eu/p/c2420-23-color-dalsa-genie-nano-poe-camera/4059/) using the GigE SDK and OpenCV. The code is based on the C++ SDK example, and it publishes two sensor_msgs/Image topics on ROS (colored and mono) and their compressed counterparts.
 
+The driver also publishes images based on vegetation indexes NDVI, CVI and TVI, and each channel separately. All topics are published raw (sensor_msgs/Image) and compressed (sensor_msgs/CompressedImage).
+
 Tested on Ubuntu 18.04 and ROS Melodic
 
 ## Installation
@@ -113,6 +115,43 @@ Mono (8UC1) Image. Raw and compressed. Only published when `publish_mono` is `tr
 
 Mono (8UC1) Image, downscaled to 720p. Raw and compressed. Only published when `publish_mono` is `true`.
 
+`ndvi` (`sensor_msgs/Image`)
+
+Mono (8UC1) Image. Raw and Compressed
+
+Extra indexes that can be toggled on camera.yaml
+
+`cvi` (`sensor_msgs/Image`)
+
+Mono (8UC1) Image. Raw and Compressed.  Only published when `CVI` is `true`.
+
+`red_channel` (`sensor_msgs/Image`)
+
+Mono (8UC1) Image. Raw and Compressed. Only published when `Red` is `true`.
+
+`green_channel` (`sensor_msgs/Image`)
+
+Mono (8UC1) Image. Raw and Compressed. Only published when `Green` is `true`.
+
+`nir_channel` (`sensor_msgs/Image`)
+
+Mono (8UC1) Image. Raw and Compressed. Only published when `NIR` is `true`.
+
+`normalized_green` (`sensor_msgs/Image`)
+
+Mono (8UC1) Image. Raw and Compressed. Only published when `Normalized_Green` is `true`.
+
+`normalized_nir` (`sensor_msgs/Image`)
+
+Mono (8UC1) Image. Raw and Compressed. Only published when `Normalized_NIR` is `true`.
+
+`normalized_red` (`sensor_msgs/Image`)
+
+Mono (8UC1) Image. Raw and Compressed. Only published when `Normalized_Red` is `true`.
+
+`tvi` (`sensor_msgs/Image`)
+
+Mono (8UC1) Image. Raw and Compressed. Only published when `TVI` is `true`.
 
 
 **Node**
