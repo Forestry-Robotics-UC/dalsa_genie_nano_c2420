@@ -6,7 +6,7 @@ which has channels:nir,g,r. Then, it calculates indexes, or separate channels,
 selected by camera.yaml and publish the images as unique topics """
 __author__ = "Maria Eduarda Andrada"
 __credits__ = ["Maria Eduarda Andrada"]
-__version__ = "0.6"
+__version__ = "0.2"
 __maintainer__ = "Maria Eduarda Andrada"
 __email__ = "maria.andrada@isr.uc.pt"
 #########################################################################################
@@ -27,7 +27,7 @@ class ndvi_multispectral():
 		rospy.on_shutdown(self.shutdown)
 		# Get ROS Params
 		camera_topic = self.camera_chosen(rospy.get_param("Camera_chosen", 0))
-		print ("Camera Topic: " + str(camera_topic))
+		print ("Camera Topic: ", camera_topic)
 
 		# Publishers
 		self.ndvi_pub = rospy.Publisher("dalsa_camera/ndvi", Image, queue_size=100)
@@ -62,7 +62,7 @@ class ndvi_multispectral():
 		if rospy.get_param("Indexes/NIR") == True:
 			self.nir_pub = rospy.Publisher("dalsa_camera/nir_channel", Image, queue_size=100)
 			self.nir_comp_pub = rospy.Publisher("dalsa_camera/nir_channel/compressed", 
-			CompressedImage, queue_size = 1)
+			CompressedImage, queue_size = 10)
 		if rospy.get_param("Indexes/Normalized_Green") == True:
 			self.ngreen_pub = rospy.Publisher("dalsa_camera/normalized_green", Image, queue_size=100)
 			self.ngreen_comp_pub = rospy.Publisher("dalsa_camera/normalized_green/compressed",
@@ -83,7 +83,7 @@ class ndvi_multispectral():
 
 	def camera_chosen(self, i):
 		# Switcher for yaml file: choose which camera to subscribe.
-		print ("Index Camera: "+ str(rospy.get_param("Camera_chosen")))
+		print ("Index Camera: ", rospy.get_param("Camera_chosen"))
 		self.switcher={
 				0:rospy.get_param("Subscribers/Camera_4k/topic", "image_raw"),
 				1:rospy.get_param("Subscribers/Camera_720p/topic", "image_raw"),
@@ -99,11 +99,11 @@ class ndvi_multispectral():
 		except CvBridgeError as e:
 			print(e)
 
-	def publish_image(self, image, publisher):
+	def publish_image(self, image, publisher, encoder = "passthrough"):
 		# Simple definition to publish image in the publisher chosen
 		# Convert OpenCV image to ROS image
 		try:
-			image_pub = self.bridge.cv2_to_imgmsg(image, encoding="passthrough")
+			image_pub = self.bridge.cv2_to_imgmsg(image, encoder)
 			image_pub.header = self.camera_header # Get header from dalsa camera
 			publisher.publish(image_pub)
 
@@ -128,11 +128,21 @@ class ndvi_multispectral():
 		# Get Chlorophyll Vegetation Index
 		if rospy.get_param("Indexes/CVI") == True:
 			cvi = nir_float * ((r_float) / (g_float ** 2))
-			# Transform float64 to uint8
-			CVI = cv.normalize(src = cvi, dst = None, alpha = 0, beta = 255, 
-			norm_type=cv.NORM_MINMAX, dtype=cv.CV_16U)
+
+			# Add colormap if it is true on the yaml file
+			if (rospy.get_param("ColorMap")) == True:
+				# Transform float64 to uint8
+				CVI = cv.normalize(src = cvi, dst = None, alpha = 0, beta = 255, 
+					norm_type=cv.NORM_MINMAX, dtype=cv.CV_8U)
+				CVI = cv.applyColorMap(CVI, cv.COLORMAP_JET)
+				self.publish_image(CVI, self.cvi_pub, "bgr8")
+			else: # if colormap is false
+				CVI = cv.normalize(src = cvi, dst = None, alpha = 0, beta = 255, 
+					norm_type=cv.NORM_MINMAX, dtype=cv.CV_16U)
+				self.publish_image(CVI, self.cvi_pub)
+
+
 			# Publish if Index is true at the yaml file
-			self.publish_image(CVI, self.cvi_pub)
 			self.publish_compressed_image(CVI, self.cvi_comp_pub)
 
 
@@ -169,10 +179,20 @@ class ndvi_multispectral():
 		# Triangular Vegetation Index
 		if rospy.get_param("Indexes/TVI") == True:
 			tvi = 0.5 * (120*(nir_float - g_float) - 200*(r_float - g_float))
-			TVI = cv.normalize(src = tvi, dst = None, alpha = 0, beta = 255, 
-			norm_type=cv.NORM_MINMAX, dtype=cv.CV_16U)
+			# Add colormap if it is true on the yaml file
+			if (rospy.get_param("ColorMap")) == True:
+				# Transform float64 to uint8
+				TVI = cv.normalize(src = tvi, dst = None, alpha = 0, beta = 255, 
+					norm_type=cv.NORM_MINMAX, dtype=cv.CV_8U)
+				TVI = cv.applyColorMap(TVI, cv.COLORMAP_WINTER)
+				self.publish_image(TVI, self.tvi_pub, "bgr8")
+
+			else: # if colormap is false
+				TVI = cv.normalize(src = tvi, dst = None, alpha = 0, beta = 255, 
+					norm_type=cv.NORM_MINMAX, dtype=cv.CV_16U)
+				self.publish_image(TVI, self.tvi_pub)
 			# Publish if Index is true at the yaml file
-			self.publish_image(TVI, self.tvi_pub)
+			# self.publish_image(TVI, self.tvi_pub)
 			self.publish_compressed_image(TVI, self.tvi_comp_pub)
 
 
@@ -211,10 +231,18 @@ class ndvi_multispectral():
 		# Get Normalized Difference Vegetation Index (NDVI)
 		NDVI = (nir_float - r_float) / (nir_float + r_float)
 		# Transform float64 to uint8
-		ndvi_img = cv.normalize(src = NDVI, dst = None, alpha = 0, beta = 255, 
-			norm_type=cv.NORM_MINMAX, dtype=cv.CV_16U)
+		if (rospy.get_param("ColorMap")) == True:
+			ndvi_img = cv.normalize(src = NDVI, dst = None, alpha = 0, beta = 255, 
+				norm_type=cv.NORM_MINMAX, dtype=cv.CV_8U)
+			ndvi_img = cv.applyColorMap(ndvi_img, cv.COLORMAP_WINTER)
+			self.publish_image(ndvi_img, self.ndvi_pub, "bgr8")
+
+		else:
+			ndvi_img = cv.normalize(src = NDVI, dst = None, alpha = 0, beta = 255, 
+				norm_type=cv.NORM_MINMAX, dtype=cv.CV_16U)
+			self.publish_image(ndvi_img, self.ndvi_pub)
+
 		#Publish Image
-		self.publish_image(ndvi_img, self.ndvi_pub)
 		self.publish_compressed_image(ndvi_img, self.ndvi_comp_pub)
 
 		# Calculate and publish any extra indexes requested
@@ -222,9 +250,8 @@ class ndvi_multispectral():
 
 
 	def shutdown(self):
-		# Instructions on shutdown
+		# Instructions on shutdown if Needed
 		rospy.loginfo("Shutting Down")
-		cv.destroyAllWindows()
 
 def main():
 	rospy.init_node('ndvi_multispectral', anonymous = True)
