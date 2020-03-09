@@ -1,0 +1,19 @@
+# Choose which extra indexes and channels to publish images
+Dalsa:
+  ColorMap: True # Create NDVI, TVI and CVI w/ colors
+  Camera_chosen: 0 # 0: Camera 4k 1: Camera 720p 
+  Subscribers:
+    Camera_4k:
+      topic: /dalsa_camera #/image_raw
+    Camera_720p:
+      topic: /dalsa_camera_720p #/image_raw
+  Indexes:
+    CVI: True
+    Red: True
+    Green: True
+    NIR: True
+    Normalized_Green: True
+    Normalized_NIR: True
+    Normalized_Red: True
+    TVI: True
+

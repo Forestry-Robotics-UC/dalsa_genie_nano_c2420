@@ -3,12 +3,12 @@
 <launch>
 	
 <!-- Run Config File  -->
-<rosparam file="$(find dalsa_genie_nano_c2420)/config/camera.yaml" />
+<rosparam file="$(find dalsa_genie_nano_c2420)/config/dalsa_camera.yaml" />
 
 <!-- Convert image from compressed to raw -->
-<!-- <node name="dalsa_720p" type="republish" pkg="image_transport" output="screen" args="compressed in:=/dalsa_camera_720p raw out:=/dalsa_camera_720p" />
-<node name="dalsa_4k" type="republish" pkg="image_transport" output="screen" args="compressed in:=/dalsa_camera raw out:=/compressed_4k/image_raw" />
- -->
+<!-- <node name="dalsa_720p" type="republish" pkg="image_transport" output="screen" args="compressed in:=/dalsa_camera_720p raw out:=/dalsa_camera_720p" /> -->
+<!-- <node name="dalsa_4k" type="republish" pkg="image_transport" output="screen" args="compressed in:=/dalsa_camera raw out:=/dalsa_camera" /> -->
+
 
 <!-- Run NDVI Converter node -->
 <node pkg = "dalsa_genie_nano_c2420" type = "ndvi_multispectral.py" name = "ndvi_multispectral" output = "screen"/>
