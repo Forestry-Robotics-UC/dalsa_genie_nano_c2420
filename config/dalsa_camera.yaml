@@ -9,11 +9,11 @@ Dalsa:
       topic: /dalsa_camera_720p #/image_raw
   Indexes:
     CVI: True
-    Red: True
-    Green: True
-    NIR: True
-    Normalized_Green: True
-    Normalized_NIR: True
-    Normalized_Red: True
+    Red: False
+    Green: False
+    NIR: False
+    Normalized_Green: False
+    Normalized_NIR: False
+    Normalized_Red: False
     TVI: True
 
