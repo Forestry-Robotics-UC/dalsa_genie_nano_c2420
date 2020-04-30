@@ -7,8 +7,7 @@
 <arg name="publish_mono"            default="false"/>
 <arg name="dalsa_camera_mono_topic" default="dalsa_camera_mono"/>
 
-<param name="camera_info" value="True"/>
-<param name="camera_info_path" value="$(find dalsa_genie_nano_c2420)/config/camera_info.yaml"/>
+
 
 
   <!--launch the driver -->
@@ -34,6 +33,9 @@
 </group> 
 
 <!-- Launch camera info  -->
-<node pkg="dalsa_genie_nano_c2420" type="camera_info_publisher.py"  name="dalsa_camera_info"/>
+<node pkg="dalsa_genie_nano_c2420" type="camera_info_publisher.py"  name="dalsa_camera_info">
+  <param name="camera_info" value="True"/>
+  <param name="camera_info_path" value="$(find dalsa_genie_nano_c2420)/config/camera_info.yaml"/>
+</node>
 <include file = "$(find dalsa_genie_nano_c2420)/launch/ndvi.launch" />
 </launch>
