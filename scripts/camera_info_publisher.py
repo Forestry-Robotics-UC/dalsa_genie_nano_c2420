@@ -57,9 +57,7 @@ if __name__ == "__main__":
     # print (type(filename))
     # print (rospy.get_param("camera_info"))
 
-    if rospy.get_param("camera_info") == True:
-        filename = rospy.get_param("camera_info_path") 
-        print (filename)
+    filename = rospy.get_param("camera_info_path") 
 
     # Parse yaml file
     camera_info_msg = yaml_to_CameraInfo(filename)
