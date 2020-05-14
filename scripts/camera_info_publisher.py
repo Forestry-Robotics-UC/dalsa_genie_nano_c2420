@@ -35,40 +35,43 @@ def yaml_to_CameraInfo(yaml_fname):
     # Load data from file
     with open(yaml_fname, "r") as file_handle:
         calib_data = yaml.load(file_handle)
-    # Parse
-    camera_info_msg = CameraInfo()
-    camera_info_msg.width = calib_data["image_width"]
-    camera_info_msg.height = calib_data["image_height"]
-    camera_info_msg.K = calib_data["camera_matrix"]["data"]
-    camera_info_msg.D = calib_data["distortion_coefficients"]["data"]
-    camera_info_msg.R = calib_data["rectification_matrix"]["data"]
-    camera_info_msg.P = calib_data["projection_matrix"]["data"]
+    # Parse dalsa camera 4k
+    dalsa_camera_info_msg = CameraInfo()
+    dalsa_camera_info_msg.width = calib_data["dalsa"]["image_width"]
+    dalsa_camera_info_msg.height = calib_data["dalsa"]["image_height"]
+    dalsa_camera_info_msg.K = calib_data["dalsa"]["camera_matrix"]["data"]
+    dalsa_camera_info_msg.D = calib_data["dalsa"]["distortion_coefficients"]["data"]
+    dalsa_camera_info_msg.R = calib_data["dalsa"]["rectification_matrix"]["data"]
+    dalsa_camera_info_msg.P = calib_data["dalsa"]["projection_matrix"]["data"]
+
+    # Parse dalsa camera 720p
+    dalsa_720p_camera_info_msg = CameraInfo()
+    dalsa_720p_camera_info_msg.width = calib_data["dalsa_720p"]["image_width"]
+    dalsa_720p_camera_info_msg.height = calib_data["dalsa_720p"]["image_height"]
+    dalsa_720p_camera_info_msg.K = calib_data["dalsa_720p"]["camera_matrix"]["data"]
+    dalsa_720p_camera_info_msg.D = calib_data["dalsa_720p"]["distortion_coefficients"]["data"]
+    dalsa_720p_camera_info_msg.R = calib_data["dalsa_720p"]["rectification_matrix"]["data"]
+    dalsa_720p_camera_info_msg.P = calib_data["dalsa_720p"]["projection_matrix"]["data"]
     #camera_info_msg.distortion_model = calib_data["distortion_model"]
-    return camera_info_msg
+    return dalsa_camera_info_msg, dalsa_720p_camera_info_msg
 
 if __name__ == "__main__":
-    # Get fname from command line (cmd line input required)
-    # import argparse
-    # arg_parser = argparse.ArgumentParser()
-    # arg_parser.add_argument("filename", help="Path to yaml file containing " +\
-    #                                          "camera calibration data")
-    # args = arg_parser.parse_args()
-    # filename = args.filename
-    # print (type(filename))
-    # print (rospy.get_param("camera_info"))
 
-    filename = rospy.get_param("camera_info_path") 
+    filename = rospy.get_param("/dalsa_camera_info/camera_info_path") 
 
     # Parse yaml file
-    camera_info_msg = yaml_to_CameraInfo(filename)
+    dalsa_camera_info_msg, dalsa_720p_camera_info_msg  = yaml_to_CameraInfo(filename)
 
     # Initialize publisher node
     rospy.init_node("dalsa_camera_info", anonymous=True)
-    publisher = rospy.Publisher("dalsa_camera/camera_info", CameraInfo, queue_size=10, latch=True)
+    publisher_dalsa = rospy.Publisher("dalsa_camera/camera_info", CameraInfo, queue_size=10, latch=True)
+    publisher_dalsa_720p = rospy.Publisher("dalsa_camera_720p/camera_info", CameraInfo, queue_size=10, latch=True)
+
     rate = rospy.Rate(1)
 
     # Run publisher
     while not rospy.is_shutdown():
-        publisher.publish(camera_info_msg)
+        publisher_dalsa.publish(dalsa_camera_info_msg)
+        publisher_dalsa_720p.publish(dalsa_720p_camera_info_msg)
         rate.sleep()
 
