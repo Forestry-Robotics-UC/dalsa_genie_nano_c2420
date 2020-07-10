@@ -47,35 +47,35 @@ class ndvi_multispectral():
 
 	def set_extra_publishers(self):
 		# Publishers for extra indexes and channels. Raw and Compressed Images
-		if rospy.get_param("Dalsa/Indexes/CVI") == True:
+		if rospy.get_param("Dalsa/Indexes/CVI"):
 			self.cvi_pub = rospy.Publisher("dalsa_camera/cvi", Image, queue_size=100)
 			self.cvi_comp_pub = rospy.Publisher("dalsa_camera/cvi/compressed",
 			CompressedImage, queue_size=100)
-		if rospy.get_param("Dalsa/Indexes/Red") == True:
+		if rospy.get_param("Dalsa/Indexes/Red"):
 			self.red_pub = rospy.Publisher("dalsa_camera/red_channel", Image, queue_size=100)
 			self.red_comp_pub = rospy.Publisher("dalsa_camera/red_channel/compressed", 
 			CompressedImage, queue_size=100)
-		if rospy.get_param("Dalsa/Indexes/Green") == True:
+		if rospy.get_param("Dalsa/Indexes/Green"):
 			self.green_pub = rospy.Publisher("dalsa_camera/green_channel", Image, queue_size=100)
 			self.green_comb_pub = rospy.Publisher("dalsa_camera/green_channel/compressed",
 			CompressedImage, queue_size=100)
-		if rospy.get_param("Dalsa/Indexes/NIR") == True:
+		if rospy.get_param("Dalsa/Indexes/NIR"):
 			self.nir_pub = rospy.Publisher("dalsa_camera/nir_channel", Image, queue_size=100)
 			self.nir_comp_pub = rospy.Publisher("dalsa_camera/nir_channel/compressed", 
 			CompressedImage, queue_size = 10)
-		if rospy.get_param("Dalsa/Indexes/Normalized_Green") == True:
+		if rospy.get_param("Dalsa/Indexes/Normalized_Green"):
 			self.ngreen_pub = rospy.Publisher("dalsa_camera/normalized_green", Image, queue_size=100)
 			self.ngreen_comp_pub = rospy.Publisher("dalsa_camera/normalized_green/compressed",
 			CompressedImage, queue_size=100)
-		if rospy.get_param("Dalsa/Indexes/Normalized_NIR") == True:
+		if rospy.get_param("Dalsa/Indexes/Normalized_NIR"):
 			self.nnir_pub = rospy.Publisher("dalsa_camera/normalized_nir", Image, queue_size=100)
 			self.nnir_comp_pub = rospy.Publisher("dalsa_camera/normalized_nir/compressed",
 			CompressedImage, queue_size=100)
-		if rospy.get_param("Dalsa/Indexes/Normalized_Red") == True:
+		if rospy.get_param("Dalsa/Indexes/Normalized_Red"):
 			self.nred_pub = rospy.Publisher("dalsa_camera/normalized_red", Image, queue_size=100)
 			self.nred_comp_pub = rospy.Publisher("dalsa_camera/normalized_red/compressed",
 			CompressedImage, queue_size=100)
-		if rospy.get_param("Dalsa/Indexes/TVI") == True:
+		if rospy.get_param("Dalsa/Indexes/TVI"):
 			self.tvi_pub = rospy.Publisher("dalsa_camera/tvi", Image, queue_size=100)
 			self.tvi_comp_pub = rospy.Publisher("dalsa_camera/tvi/compressed",
 			CompressedImage, queue_size=100)
@@ -126,11 +126,11 @@ class ndvi_multispectral():
 		# Publish all extra indexes if set as True on the camera.yaml file. Raw and Compressed
 
 		# Get Chlorophyll Vegetation Index
-		if rospy.get_param("Dalsa/Indexes/CVI") == True:
+		if rospy.get_param("Dalsa/Indexes/CVI"):
 			cvi = nir_float * ((r_float) / (g_float ** 2))
 
 			# Add colormap if it is true on the yaml file
-			if (rospy.get_param("Dalsa/ColorMap")) == True:
+			if (rospy.get_param("Dalsa/ColorMap")):
 				# Transform float64 to uint8
 				CVI = cv.normalize(src = cvi, dst = None, alpha = 0, beta = 255, 
 					norm_type=cv.NORM_MINMAX, dtype=cv.CV_8U)
@@ -148,7 +148,7 @@ class ndvi_multispectral():
 
 
 		# Get Normalized Green
-		if rospy.get_param("Dalsa/Indexes/Normalized_Green") == True:
+		if rospy.get_param("Dalsa/Indexes/Normalized_Green"):
 			n_green = (g_float / (nir_float + r_float + g_float))
 			Normalized_Green = cv.normalize(src = n_green, dst = None, alpha = 0, beta = 255, 
 			norm_type=cv.NORM_MINMAX, dtype=cv.CV_16U)
@@ -158,7 +158,7 @@ class ndvi_multispectral():
 
 
 		# Get Normalized NIR
-		if rospy.get_param("Dalsa/Indexes/Normalized_NIR") == True:
+		if rospy.get_param("Dalsa/Indexes/Normalized_NIR"):
 			n_nir = ((nir_float) / (nir_float + r_float + g_float))
 			Normalized_NIR = cv.normalize(src = n_nir, dst = None, alpha = 0, beta = 255, 
 			norm_type=cv.NORM_MINMAX, dtype=cv.CV_16U)
@@ -168,7 +168,7 @@ class ndvi_multispectral():
 
 
 		# Get Normalized Red
-		if rospy.get_param("Dalsa/Indexes/Normalized_Red") == True:
+		if rospy.get_param("Dalsa/Indexes/Normalized_Red"):
 			n_red = (r_float / (nir_float + r_float + g_float))
 			Normalized_Red = cv.normalize(src = n_red, dst = None, alpha = 0, beta = 255, 
 			norm_type=cv.NORM_MINMAX, dtype=cv.CV_16U)
@@ -178,10 +178,10 @@ class ndvi_multispectral():
 
 
 		# Triangular Vegetation Index
-		if rospy.get_param("Dalsa/Indexes/TVI") == True:
+		if rospy.get_param("Dalsa/Indexes/TVI"):
 			tvi = 0.5 * (120*(nir_float - g_float) - 200*(r_float - g_float))
 			# Add colormap if it is true on the yaml file
-			if (rospy.get_param("Dalsa/ColorMap")) == True:
+			if (rospy.get_param("Dalsa/ColorMap")):
 				# Transform float64 to uint8
 				TVI = cv.normalize(src = tvi, dst = None, alpha = 0, beta = 255, 
 					norm_type=cv.NORM_MINMAX, dtype=cv.CV_8U)
@@ -197,7 +197,26 @@ class ndvi_multispectral():
 			# self.publish_image(TVI, self.tvi_pub)
 			self.publish_compressed_image(TVI, self.tvi_comp_pub)
 
+	def ndvi(self, nir_float, r_float):
+		np.seterr(divide='ignore', invalid='ignore')		
 
+		ndvi = np.divide((nir_float - r_float), (nir_float + r_float))
+		# ndvi = (ndvi - np.min(ndvi))/np.ptp(ndvi)
+
+		# ndvi = 255*(ndvi - np.min(ndvi))/np.ptp(ndvi).astype(int)
+		# ndvi = ndvi.astype(np.uint8)
+		if (rospy.get_param("Dalsa/ColorMap")):
+			ndvi_img = cv.normalize(src = ndvi, dst = None, alpha = 0, beta = 255, 
+				norm_type=cv.NORM_MINMAX, dtype=cv.CV_8U)
+			ndvi_img = cv.equalizeHist(ndvi_img)
+			ndvi_img = cv.applyColorMap(ndvi_img, cv.COLORMAP_WINTER)
+			self.publish_image(ndvi_img, self.ndvi_pub, "bgr8")
+
+		else:
+			ndvi_img = cv.normalize(src = ndvi, dst = None, alpha = 0, beta = 255, 
+				norm_type=cv.NORM_MINMAX, dtype=cv.CV_16U)
+			self.publish_image(ndvi_img, self.ndvi_pub)
+		return ndvi_img
 
 	def camera_callback(self, data):
 		self.camera_header = data.header
@@ -207,19 +226,19 @@ class ndvi_multispectral():
 		(nir, r, g) = cv.split(cv_image)
 
 		# Publish if Index is true at the yaml file
-		if rospy.get_param("Dalsa/Indexes/NIR") == True:
+		if rospy.get_param("Dalsa/Indexes/NIR"):
 			self.publish_image(nir, self.nir_pub) # image raw
 			self.publish_compressed_image(nir, self.nir_comp_pub) # compressed
 
 
 		# Publish if Index is true at the yaml file
-		if rospy.get_param("Dalsa/Indexes/Green") == True:
+		if rospy.get_param("Dalsa/Indexes/Green"):
 			self.publish_image(g, self.green_pub)
 			self.publish_compressed_image(g, self.green_comb_pub)
 
 
 		# Publish if Index is true at the yaml file
-		if rospy.get_param("Dalsa/Indexes/Red") == True:
+		if rospy.get_param("Dalsa/Indexes/Red"):
 			self.publish_image(r, self.red_pub)
 			self.publish_compressed_image(r, self.red_comp_pub)
 
@@ -231,19 +250,9 @@ class ndvi_multispectral():
 		# Ignoring division by 0
 		np.seterr(divide='ignore', invalid='ignore')		
 		# Get Normalized Difference Vegetation Index (NDVI)
-		NDVI = (nir_float - r_float) / (nir_float + r_float)
+		ndvi_img = self.ndvi(nir_float, r_float)
 		# Transform float64 to uint8
-		if (rospy.get_param("Dalsa/ColorMap")) == True:
-			ndvi_img = cv.normalize(src = NDVI, dst = None, alpha = 0, beta = 255, 
-				norm_type=cv.NORM_MINMAX, dtype=cv.CV_8U)
-			ndvi_img = cv.equalizeHist(ndvi_img)
-			ndvi_img = cv.applyColorMap(ndvi_img, cv.COLORMAP_WINTER)
-			self.publish_image(ndvi_img, self.ndvi_pub, "bgr8")
 
-		else:
-			ndvi_img = cv.normalize(src = NDVI, dst = None, alpha = 0, beta = 255, 
-				norm_type=cv.NORM_MINMAX, dtype=cv.CV_16U)
-			self.publish_image(ndvi_img, self.ndvi_pub)
 
 		#Publish Image
 		self.publish_compressed_image(ndvi_img, self.ndvi_comp_pub)
