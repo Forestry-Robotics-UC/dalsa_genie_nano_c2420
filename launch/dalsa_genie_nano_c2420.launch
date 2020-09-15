@@ -44,7 +44,8 @@
 
 <!-- Throttle camera to 0.5Hz (if used) -->
 <group if = "$(arg throttle)">
-      <node name="dalsa_throttle" type="throttle" pkg="topic_tools" args="messages /dalsa_camera_720p/compressed 0.5 /dalsa_camera_720p/throttle/compressed" />
+      <node name="dalsa_720p_throttle" type="throttle" pkg="topic_tools" args="messages /dalsa_camera_720p/compressed 0.5 /dalsa_camera_720p/throttle/compressed" />
+      <node name="dalsa_throttle" type="throttle" pkg="topic_tools" args="messages /dalsa_camera/compressed 0.5 /dalsa_camera/throttle/compressed" />
 </group>
 
 </launch>
