@@ -37,7 +37,7 @@ dalsa_720p:
     data: [ 808.22068,    0.     ,  440.0638 ,
               0.     ,  810.81061,  332.46164,
               0.     ,    0.     ,    1.     ]
-  camera_model: plumb_bob
+  distortion_model: plumb_bob
   distortion_coefficients:
     rows: 1
     cols: 5

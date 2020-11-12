@@ -37,25 +37,31 @@ def yaml_to_CameraInfo(yaml_fname):
         calib_data = yaml.load(file_handle)
     # Parse dalsa camera 4k
     dalsa_camera_info_msg = CameraInfo()
+    dalsa_camera_info_msg.header.frame_id = 'dalsa_optical_frame'
     dalsa_camera_info_msg.width = calib_data["dalsa"]["image_width"]
     dalsa_camera_info_msg.height = calib_data["dalsa"]["image_height"]
     dalsa_camera_info_msg.K = calib_data["dalsa"]["camera_matrix"]["data"]
     dalsa_camera_info_msg.D = calib_data["dalsa"]["distortion_coefficients"]["data"]
     dalsa_camera_info_msg.R = calib_data["dalsa"]["rectification_matrix"]["data"]
     dalsa_camera_info_msg.P = calib_data["dalsa"]["projection_matrix"]["data"]
+    dalsa_camera_info_msg.distortion_model = calib_data["dalsa_720p"]["distortion_model"]
+
 
     # Parse dalsa camera 720p
     dalsa_720p_camera_info_msg = CameraInfo()
+    dalsa_camera_info_msg.header.stamp = rospy.Time.now()
+    dalsa_720p_camera_info_msg.header.frame_id = "dalsa_optical_frame"
     dalsa_720p_camera_info_msg.width = calib_data["dalsa_720p"]["image_width"]
     dalsa_720p_camera_info_msg.height = calib_data["dalsa_720p"]["image_height"]
     dalsa_720p_camera_info_msg.K = calib_data["dalsa_720p"]["camera_matrix"]["data"]
     dalsa_720p_camera_info_msg.D = calib_data["dalsa_720p"]["distortion_coefficients"]["data"]
     dalsa_720p_camera_info_msg.R = calib_data["dalsa_720p"]["rectification_matrix"]["data"]
     dalsa_720p_camera_info_msg.P = calib_data["dalsa_720p"]["projection_matrix"]["data"]
-    #camera_info_msg.distortion_model = calib_data["distortion_model"]
+    dalsa_720p_camera_info_msg.distortion_model = calib_data["dalsa_720p"]["distortion_model"]
     return dalsa_camera_info_msg, dalsa_720p_camera_info_msg
 
 if __name__ == "__main__":
+    rospy.init_node("dalsa_camera_info", anonymous=False)
 
     filename = rospy.get_param("/dalsa_camera_info/camera_info_path") 
 
@@ -63,14 +69,19 @@ if __name__ == "__main__":
     dalsa_camera_info_msg, dalsa_720p_camera_info_msg  = yaml_to_CameraInfo(filename)
 
     # Initialize publisher node
-    rospy.init_node("dalsa_camera_info", anonymous=True)
-    publisher_dalsa = rospy.Publisher("dalsa_camera/camera_info", CameraInfo, queue_size=10, latch=True)
-    publisher_dalsa_720p = rospy.Publisher("dalsa_camera_720p/camera_info", CameraInfo, queue_size=10, latch=True)
+    publisher_dalsa = rospy.Publisher("dalsa_camera/camera_info", CameraInfo,
+                                         queue_size=10, latch=True)
+    publisher_dalsa_720p = rospy.Publisher("dalsa_camera_720p/camera_info", 
+                                        CameraInfo, queue_size=10, latch=True)
 
-    rate = rospy.Rate(1)
+    # rospy.spin()
+    rate = rospy.Rate(50)
 
     # Run publisher
     while not rospy.is_shutdown():
+        dalsa_camera_info_msg.header.stamp = rospy.Time.now()
+        dalsa_720p_camera_info_msg.header.stamp = rospy.Time.now()
+
         publisher_dalsa.publish(dalsa_camera_info_msg)
         publisher_dalsa_720p.publish(dalsa_720p_camera_info_msg)
         rate.sleep()
