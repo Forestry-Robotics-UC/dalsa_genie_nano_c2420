@@ -9,10 +9,9 @@
 <arg name="ndvi"                    default="false"/>
 <arg name="throttle"                default="true"/>
 
-
   <!--launch the driver -->
   <node pkg="dalsa_genie_nano_c2420" type="dalsa_genie_nano_c2420_driver" name="dalsa_genie_nano_c2420_driver" output="screen" respawn="true">
-    <param name="dalsa_camera_frame"               value="dalsa_link"/>
+    <param name="dalsa_camera_frame"               value="dalsa_optical_frame"/>
     <param name="dalsa_camera_topic"               value="$(arg dalsa_camera_topic)"/>
     <param name="camera_index"                     value="0"/>
     <param name="publish_mono"                     value="$(arg publish_mono)"/>
